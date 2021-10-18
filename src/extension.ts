@@ -224,7 +224,7 @@ interface I${formatKey(key)} extends ${getInstanceType(objectTypes[key]['plugin-
 			`);
 		});
 
-		data = data.replace('// generatedDate', '// ' + new Date().toLocaleDateString() + new Date().toLocaleTimeString());
+		data = data.replace('// generatedDate', '// ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString());
 
 		fs.writeFile(path!.fsPath + '/c3.d.ts', data, err => {
 			if (err) {

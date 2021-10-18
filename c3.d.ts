@@ -38,6 +38,7 @@ interface IRuntime {
     isInWorker: boolean;
     alert(message: string): Promise<void>;
 }
+declare var IRuntime:  { new(): IRuntime };
 
 interface Blob {
     readonly size: number;
@@ -59,6 +60,7 @@ interface IAssetManager {
     loadScripts (...urls: Array<string>): Promise<void>;
     compileWebAssembly(url: string): Promise<unknown>;
 }
+declare var IAssetManager:  { new(): IAssetManager };
 
 interface IStorage {
     getItem(key: string): Promise<string>;
@@ -67,6 +69,7 @@ interface IStorage {
     clear(): Promise<void>;
     keys(): Promise<string[]>;
 }
+declare var IStorage:  { new(): IStorage };
 
 interface ILayout {
     name: string;
@@ -85,6 +88,7 @@ interface ILayout {
     getVanishingPoint(): [number, number];
     effects: Array<IEffectInstance>;
 }
+declare var ILayout:  { new(): ILayout };
 
 interface ILayer {
     name: string;
@@ -111,6 +115,7 @@ interface ILayer {
     cssPxToLayer(clientX: number, clientY: number, z?: number): [number, number];
     layerToCssPx(clientX: number, clientY: number, z?: number): [number, number];
 }
+declare var ILayer:  { new(): ILayer };
 
 interface IEffectInstance {
     index: number;
@@ -119,6 +124,7 @@ interface IEffectInstance {
     setParamater(index: number, value: number | string | [number, number, number]): void;
     getParamater(index: number): number | string | [number, number, number];
 }
+declare var IEffectInstance:  { new(): IEffectInstance };
 
 interface IMouseObjectType extends IObjectClass {
     getMouseX(layerNameOrIndex: string | number): number;
@@ -126,15 +132,18 @@ interface IMouseObjectType extends IObjectClass {
     getMousePosition(layerNameOrIndex: string | number): [number, number];
     isMouseButtonDown(button: 1 | 2 | 3): boolean;
 }
+declare var IMouseObjectType: undefined | { new(): IMouseObjectType };
 
 interface IKeyboardObjectType extends IObjectClass {
     isKeyDown(keyStringOrWhich: number | string): boolean;
 }
+declare var IKeyboardObjectType: undefined | { new(): IKeyboardObjectType };
 
 
 interface ITouchObjectType extends IObjectClass {
     requestPermission(type: string): Promise<string>;
 }
+declare var ITouchObjectType: undefined | { new(): ITouchObjectType };
 
 interface IObjectClass<T = IInstance> {
     readonly name: string;
@@ -149,6 +158,7 @@ interface IObjectClass<T = IInstance> {
     pickedInstances(): Iterable<T>;
     createInstance(layerNameOrIndex: string | number, x: number, y: number, createHierachy: boolean): T
 }
+declare var IObjectClass: { new(): IObjectClass };
 
 // instances
 
@@ -163,6 +173,7 @@ interface IInstance {
     readonly uid: number;
     destroy(): void;
 }
+declare var IInstance: { new(): IInstance };
 
 interface I3DShapeInstance extends IWorldInstance {
     shape: 'box' | 'prism' | 'wedge' | 'pyramid' | 'corner-out' | 'corner-in';
@@ -177,6 +188,7 @@ interface I3DShapeInstance extends IWorldInstance {
     getImagePointY(nameOrIndex: string | number): number
     getImagePoint(nameOrIndex: string | number): [number, number]
 }
+declare var I3DShapeInstance: undefined | { new(): I3DShapeInstance };
 
 interface IArrayInstance extends IWorldInstance {
     width: number;
@@ -186,11 +198,13 @@ interface IArrayInstance extends IWorldInstance {
     getAt(x?: number, y?: number, z?: number): string | number;
     setAt(val: string | number, x: number, y?: number, z?: number): void;
 }
+declare var IArrayInstance: undefined | { new(): IArrayInstance };
 
 interface IAudioObjectType extends IObjectClass {
     audioContext: AudioContext;
     destinationNode: unknown;
 }
+declare var IAudioObjectType: undefined | { new(): IAudioObjectType };
 
 interface IBinaryDataInstance extends IInstance {
     setArrayBufferCopy(viewOrBuffer: ArrayBuffer | DataView): void;
@@ -198,6 +212,7 @@ interface IBinaryDataInstance extends IInstance {
     getArrayBufferCopy(): ArrayBuffer;
     getArrayBufferReadOnly(): ArrayBuffer;
 }
+declare var IBinaryDataInstance: undefined | { new(): IBinaryDataInstance };
 
 interface IButtonInstance extends IDOMInstance {
     addEventListener(eventName: 'click', callback: (...params: unknown[]) => void): void;
@@ -206,10 +221,12 @@ interface IButtonInstance extends IDOMInstance {
     isEnabled: boolean;
     isChecked: false;
 }
+declare var IButtonInstance: undefined | { new(): IButtonInstance };
 
 interface IDictionaryInstance extends IInstance {
     getDataMap(): Map<string, string | number>;
 }
+declare var IDictionaryInstance: undefined | { new(): IDictionaryInstance };
 
 interface IDrawingCanvasInstance extends IWorldInstance {
     readonly surfaceDeviceWidth: number;    
@@ -217,6 +234,7 @@ interface IDrawingCanvasInstance extends IWorldInstance {
     getImagePixelData: Promise<ImageData>;
     loadImagePixelData(imageData: ImageData, premultiplyAlpha?: boolean): void;  
 }
+declare var IDrawingCanvasInstance: undefined | { new(): IDrawingCanvasInstance };
 
 interface IJsonInstance extends IInstance {
     getJsonDataCopy(): unknown;
@@ -225,6 +243,7 @@ interface IJsonInstance extends IInstance {
     toCompactString(): string;
     toBeautifiedString(): string;
 }
+declare var IJsonInstance: undefined | { new(): IJsonInstance };
 
 interface ISliderBarInstance extends IDOMInstance {
     addEventListener(eventName: 'click' | 'change', callback: (...params: unknown[]) => void): void;
@@ -235,6 +254,7 @@ interface ISliderBarInstance extends IDOMInstance {
     tooltip: string;
     isEnabled: boolean;
 }
+declare var ISliderBarInstance: undefined | { new(): ISliderBarInstance };
 
 interface ISpriteInstance extends IWorldInstance {
     setAnimation(animationName: string, from?: 'beginning' | 'current-frame'): void;
@@ -255,6 +275,7 @@ interface ISpriteInstance extends IWorldInstance {
     getPolyPointY(index: number): number;
     getPolyPoint(index: number): [number | number];
 }
+declare var ISpriteInstance: undefined | { new(): ISpriteInstance };
 
 interface ISpriteFontInstance extends IWorldInstance {
     text: string;
@@ -267,6 +288,7 @@ interface ISpriteFontInstance extends IWorldInstance {
     verticalAlign: 'top' | 'center' | 'bottom';
     wordWrapMode: 'word' | 'character';
 }
+declare var ISpriteFontInstance: undefined | { new(): ISpriteFontInstance };
 
 interface ITextInstance extends IWorldInstance {
     text: string;
@@ -282,6 +304,7 @@ interface ITextInstance extends IWorldInstance {
     verticalAlign: 'top' | 'center' | 'bottom';
     wordWrapMode: 'word' | 'character';
 }
+declare var ITextInstance: undefined | { new(): ITextInstance };
 
 interface ITextInputInstance extends IDOMInstance {
     addEventListener(eventName: 'click' | 'dblclick' | 'change', callback: (...params: unknown[]) => void): void;
@@ -293,6 +316,7 @@ interface ITextInputInstance extends IDOMInstance {
     scrollToBottom(): void;
     maxLength: number;
 }
+declare var ITextInputInstance: undefined | { new(): ITextInputInstance };
 
 interface ITiledBackgroundInstance extends IWorldInstance {
     imageHeight: number;
@@ -304,6 +328,7 @@ interface ITiledBackgroundInstance extends IWorldInstance {
     imageAngle: number;
     imageAngleDegrees: number;
 }
+declare var ITiledBackgroundInstance: undefined | { new(): ITiledBackgroundInstance };
 
 interface ITilemapInstance extends IWorldInstance {
     TILE_FLIPPED_HORIZONTAL: -0x80000000;
@@ -321,31 +346,7 @@ interface ITilemapInstance extends IWorldInstance {
     getTileAt(x: number, y: number): number;
     setTileAt(x: number, y: number, tile: number): void;
 }
-
-interface HTMLElement extends Element, DocumentAndElementEventHandlers, ElementCSSInlineStyle, ElementCSSInlineStyle, ElementContentEditable, GlobalEventHandlers, HTMLOrSVGElement {
-    accessKey: string;
-    readonly accessKeyLabel: string;
-    autocapitalize: string;
-    dir: string;
-    draggable: boolean;
-    hidden: boolean;
-    innerText: string;
-    lang: string;
-    readonly offsetHeight: number;
-    readonly offsetLeft: number;
-    readonly offsetParent: Element | null;
-    readonly offsetTop: number;
-    readonly offsetWidth: number;
-    outerText: string;
-    spellcheck: boolean;
-    title: string;
-    translate: boolean;
-    click(): void;
-    addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-    removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-}
+declare var ITilemapInstance: undefined | { new(): ITilemapInstance };
 
 interface IDOMInstance {
     focus(): void;
@@ -353,6 +354,7 @@ interface IDOMInstance {
     setCssStyle(prop: string, value: string): void;
     getElement(): HTMLElement;
 }
+declare var IDOMInstance: undefined | { new(): IDOMInstance };
 
 interface IWorldInstance extends IInstance  {
     layout: ILayout;
@@ -395,11 +397,13 @@ interface IWorldInstance extends IInstance  {
     removeChild(worldInstance: IWorldInstance): void;
     removeFromParent(worldInstance: IWorldInstance): void;
 }
+declare var IWorldInstance: { new(): IWorldInstance };
 
 
 interface IBehavior {
     getAllInstances: Array<IInstance>;
 }
+declare var IBehavior: { new(): IBehavior };
 
 interface IBehaviorInstance {
     dispatchEvent(e: Event): void;
@@ -407,6 +411,7 @@ interface IBehaviorInstance {
     behavior: IBehavior;
     runtime: IRuntime;
 }
+declare var IBehaviorInstance: { new(): IBehaviorInstance };
 
 interface I8DirectionBehaviorInstance extends IBehaviorInstance {
     stop(): void;
