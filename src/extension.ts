@@ -91,9 +91,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 async function getObjectTypes (context: vscode.ExtensionContext) {
 	if (path) {
-		await fs.readdir(path.fsPath + '\\objectTypes', async (err, files) => {
+		await fs.readdir(path.fsPath + '/objectTypes', async (err, files) => {
 			for (const file of files) {
-				await vscode.workspace.openTextDocument(path!.fsPath + '\\objectTypes\\' + file).then((document) => {
+				await vscode.workspace.openTextDocument(path!.fsPath + '/objectTypes/' + file).then((document) => {
 					let type = JSON.parse(document.getText());
 					if (objectTypes[type.name]) {
 						type.behaviorTypes = [...(objectTypes[type.name].behaviourTypes || []), ...(type.behaviorTypes || [])];
@@ -110,9 +110,9 @@ async function getObjectTypes (context: vscode.ExtensionContext) {
 
 async function getFamilies (context: vscode.ExtensionContext) {
 	if (path) {
-		await fs.readdir(path.fsPath + '\\families', async (err, files) => {
+		await fs.readdir(path.fsPath + '/families', async (err, files) => {
 			for (const file of files) {
-				await vscode.workspace.openTextDocument(path!.fsPath + '\\families\\' + file).then((document) => {
+				await vscode.workspace.openTextDocument(path!.fsPath + '/families/' + file).then((document) => {
 					let family = JSON.parse(document.getText());
 					objectTypes[family.name] = family;
 					(family.members || []).forEach((member: string) => {

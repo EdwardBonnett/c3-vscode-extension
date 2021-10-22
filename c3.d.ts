@@ -4,6 +4,7 @@ declare function runOnStartup(cb: (runtime: IRuntime) => void): void;
 
 interface IRuntime {
     objects: {
+        [key:string]: IObjectClass;
         // objects
     }
     addEventListener(eventName: 'tick' | 'beforeprojectstart' | 'afterprojectstart' | 'keydown' | 'keyup'
@@ -46,7 +47,6 @@ interface Blob {
     slice(start?: number, end?: number, contentType?: string): Blob;
 }
 
-
 interface IAssetManager {
     fetchText(url: string): Promise<string>;
     fetchJson(url: string): Promise<unknown>;
@@ -84,6 +84,7 @@ interface ILayout {
     scrollY: number;
     scrollTo(x: number, y: number): void;
     scale: number;
+    projection: 'perspective' | 'orthographic';
     setVanishingPoint(x: number, y: number): void;
     getVanishingPoint(): [number, number];
     effects: Array<IEffectInstance>;
@@ -137,8 +138,8 @@ declare var IMouseObjectType: undefined | { new(): IMouseObjectType };
 interface IKeyboardObjectType extends IObjectClass {
     isKeyDown(keyStringOrWhich: number | string): boolean;
 }
-declare var IKeyboardObjectType: undefined | { new(): IKeyboardObjectType };
 
+declare var IKeyboardObjectType: undefined | { new(): IKeyboardObjectType };
 
 interface ITouchObjectType extends IObjectClass {
     requestPermission(type: string): Promise<string>;
@@ -174,6 +175,20 @@ interface IInstance {
     destroy(): void;
 }
 declare var IInstance: { new(): IInstance };
+
+interface I3DCameraObjectType extends IObjectClass {
+    lookAtPosition(camerax: number, cameraY: number, cameraZ: number, lookX: number, lookY: number, lookZ: number, upX: number, upY: number, upZ: number): void;
+    lookParallelToLayout(cameraX: number, cameraY: number, cameraZ: number, lookAngle: number): void;
+    restore2DCamera(): void;
+    moveAlongLayoutAxis(distance: number, axis: 'x' | 'y' | 'z', which: 'camera' | 'look' | 'both'): void;
+    moveAlongCameraAxis(distance: number, axis: 'forward' | 'up' | 'right', which: 'camera' | 'look' | 'both'): void;
+    getCameraPosition(): [number, number, number];
+    getLookPosition(): [number, number, number];
+    getForwardVector(): [number, number, number];
+    getForwardVector(): [number, number, number];
+    getUpVector(): [number, number, number];
+    readonly zScale: number;
+}
 
 interface I3DShapeInstance extends IWorldInstance {
     shape: 'box' | 'prism' | 'wedge' | 'pyramid' | 'corner-out' | 'corner-in';
@@ -303,6 +318,8 @@ interface ITextInstance extends IWorldInstance {
     horizontalAlign: 'left' | 'center' | 'right';
     verticalAlign: 'top' | 'center' | 'bottom';
     wordWrapMode: 'word' | 'character';
+    textWidth: number;
+    textHeight: number;
 }
 declare var ITextInstance: undefined | { new(): ITextInstance };
 
@@ -427,6 +444,7 @@ interface I8DirectionBehaviorInstance extends IBehaviorInstance {
     isIgnoringInput: boolean;
     isEnabled: boolean;
 }
+declare var I8DirectionBehaviorInstance: undefined | { new(): I8DirectionBehaviorInstance };
 
 interface IBulletBehaviorInstance extends IBehaviorInstance {
     speed: number;
@@ -437,6 +455,7 @@ interface IBulletBehaviorInstance extends IBehaviorInstance {
     distanceTravelled: number;
     isEnabled: boolean;
 }
+declare var IBulletBehaviorInstance: undefined | { new(): IBulletBehaviorInstance };
 
 interface ICarBehaviorInstance extends IBehaviorInstance {
     stop(): void;
@@ -456,6 +475,8 @@ interface ICarBehaviorInstance extends IBehaviorInstance {
     isEnabled: boolean;
 }
 
+declare var ICarBehaviorInstance: undefined | { new(): ICarBehaviorInstance };
+
 interface ILOSBehaviorInstance extends IBehaviorInstance {
     range: number;
     coneOfView: number;
@@ -464,6 +485,8 @@ interface ILOSBehaviorInstance extends IBehaviorInstance {
     castRay(fromX: number, fromY: number, toX: number, toY: number, useCollisionCells?: boolean): ILOSBehaviorRay;
     ray: ILOSBehaviorRay;
 }
+
+declare var ILOSBehaviorInstance: undefined | { new(): ILOSBehaviorInstance };
 
 interface ILOSBehaviorRay {
     readonly didCollide: boolean;
@@ -501,6 +524,8 @@ interface IMoveToBehaviorInstance extends IBehaviorInstance {
     isEnabled: boolean;
 }
 
+declare var IMoveToBehaviorInstance: undefined | { new(): IMoveToBehaviorInstance };
+
 interface IPathfindingBehaviorInstance extends IBehaviorInstance {
     addEventListener(type: 'arrived', callback: (...params: unknown[]) => void, capture?: boolean): void;
     removeEventListener(type: 'arrived', callback: (...params: unknown[]) => void, capture?: boolean): void;
@@ -523,6 +548,8 @@ interface IPathfindingBehaviorInstance extends IBehaviorInstance {
     isEnabled: boolean;
 }
 
+declare var IPathfindingBehaviorInstance: undefined | { new(): IPathfindingBehaviorInstance };
+
 interface IPathfindingMap {
     isCellObstacle(x: number, y: number): boolean;
     isDiagonalsEnabled: boolean;
@@ -538,6 +565,8 @@ interface IPhysicsBehavior {
     positionIterations: number;
     setCollisionsEnabled(iObjectClassA: IObjectClass, iObjectClassB: IObjectClass, state: boolean): void;
 }
+
+declare var IPhysicsBehavior: undefined | { new(): IPhysicsBehavior };
 
 interface IPhysicsBehaviorInstance extends IBehaviorInstance {
     isEnabled: boolean;
@@ -579,6 +608,8 @@ interface IPhysicsBehaviorInstance extends IBehaviorInstance {
     getContact(index: number): [number, number];
 }
 
+declare var IPhysicsBehaviorInstance: undefined | { new(): IPhysicsBehaviorInstance };
+
 interface IPlatformBehaviorInstance extends IBehaviorInstance {
     fallThrough(): void;
     resetDoubleJump(allow: boolean): void;
@@ -606,6 +637,8 @@ interface IPlatformBehaviorInstance extends IBehaviorInstance {
     isEnabled: boolean;
 }
 
+declare var IPlatformBehaviorInstance: undefined | { new(): IPlatformBehaviorInstance };
+
 interface ISineBehaviorInstance extends IBehaviorInstance {
     movement: 'horizontal' | 'vertical' | 'forwards-backwards' | 'size' | 'width' | 'height' | 'angle' | 'opacity' | 'z-elevation' | 'value-only';
     wave: 'sine' | 'triangle' | 'sawtooth' | 'reverse-sawtooth' | 'square';
@@ -616,6 +649,8 @@ interface ISineBehaviorInstance extends IBehaviorInstance {
     updateInitialState(): void;
     isEnabled: boolean;
 }
+
+declare var ISineBehaviorInstance: undefined | { new(): ISineBehaviorInstance };
 
 interface ITileMovementBehaviourInstance extends IBehaviorInstance {
     isIgnoringInput: boolean;
@@ -635,3 +670,5 @@ interface ITileMovementBehaviourInstance extends IBehaviorInstance {
     toGridSpace(x: number, y: number): [number, number];
     fromGridSpace(x: number, y: number): [number, number];
 }
+
+declare var ITileMovementBehaviourInstance: undefined | { new(): ITileMovementBehaviourInstance };
