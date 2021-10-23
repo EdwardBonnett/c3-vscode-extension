@@ -3,36 +3,52 @@
 import * as vscode from 'vscode';
 import SocketServer from './socketServer';
 import * as fs from 'fs';
+import * as tsFileStruct from 'ts-file-parser';
+import TypescriptDefinition, { TypescriptClass } from './models/typescriptDefinition';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 let server: SocketServer | null = null;
 let myStatusBarItem: vscode.StatusBarItem;
 let objectTypes: Record<string, any> = {};
-let familes: Record<string, any> = {};
+let globalVars: Record<string, any> = {};
 let path: vscode.Uri | null = null;
+let schemas: TypescriptDefinition;
+let domSchema: TypescriptDefinition;
+let schemes: Record<string, any> = {};
 
 class GoCompletionItemProvider implements vscode.CompletionItemProvider {
     public async provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken):  Promise<vscode.CompletionItem[]> {
 	// find out if we are completing a property in the 'dependencies' object.
 	const range = document.getWordRangeAtPosition(position,/\S+/);
 	const word = range ? document.getText(range) : '';
+
+	let words: Array<string> = word.split('.');
+	var range2 = new vscode.Range(position, new vscode.Position(position.line, position.character - words[words.length - 1].length - 1));
+	words = words.filter((a, i, l) => i !== l.length - 1);
 	
+	const keys = Object.keys(schemes)
+		.filter(a => a.startsWith(word) && a.split('.').length === words.length + 1);
 
-	// var match = linePrefix.match(/"Objects\."/);
-	// if (!match) {
-	// 	return [];
-	// }
-
-	var range2 = new vscode.Range(position, new vscode.Position(position.line, position.character + word.length));
-	if (word !== 'runtime.objects.') {return [];}
-
-	return Object.keys(objectTypes).map((key) => ({
-		label: key,
-		insertText: key,
-		range: range2,
-		kind: vscode.CompletionItemKind.Class
-	}));
+	return keys
+		.map((key, i) => {
+			const arr = key.split('.');
+			const name = arr[arr.length - 1];
+			const type = schemes[key];
+			let kind = vscode.CompletionItemKind.Property;
+			if (type.type?.modulePath) { kind = vscode.CompletionItemKind.Field; }
+			if (type.arguments !== undefined) { kind = vscode.CompletionItemKind.Method; }
+			return {
+				label: name,
+				detail: type.text,
+				insertText: '.' + name,
+				range: range2,
+				sortText: '.' + name,
+				preselect: true,
+				kind: kind,
+				filterText: '.' + name
+			};
+		});
     }
 }
 
@@ -81,11 +97,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	myStatusBarItem.show();
 	myStatusBarItem.text = 'C3 - Connecting...';
 	context.subscriptions.push(myStatusBarItem);
-
-	
-
-
-
 	// context.subscriptions.push(disposable);
 }
 
@@ -103,7 +114,7 @@ async function getObjectTypes (context: vscode.ExtensionContext) {
 					
 				});
 			}
-			createDefinitionFile(context);
+			getGlobalVars(context);
 		});
 	}
 }
@@ -129,30 +140,34 @@ async function getFamilies (context: vscode.ExtensionContext) {
 	}
 }
 
+async function getGlobalVars (context: vscode.ExtensionContext) {
+	if (!path) {return;}
+	await fs.readdir(path.fsPath + '/eventSheets', async (err, files) => {
+		for (const file of files) {
+			await vscode.workspace.openTextDocument(path!.fsPath + '/eventSheets/' + file).then((document) => {
+				let eventSheet = JSON.parse(document.getText());
+				if (eventSheet.events) {
+					eventSheet.events.forEach((event: any) => {
+						if (event.eventType !== 'variable') {return;}
+						globalVars[event.name] = event;
+					});
+				}
+			});
+		}
+		createDefinitionFile(context);
+	});
+	
+}
+
 
 function formatKey(key: string) {
 	key = key.replace(/ /g, '');
-	// const numberMap: Record<string, string> = 
-	// { 
-	// 	'0': 'Zero',
-	// 	'1': 'One',
-	// 	'2': 'Two',
-	// 	'3': 'Three',
-	// 	'4': 'Four',
-	// 	'5': 'Five',
-	// 	'6': 'Six',
-	// 	'7': 'Seven',
-	// 	'8': 'Eight',
-	// 	'9': 'Nine'
-	// };
-	// if (numberMap[key[0]]) {
-	// 	return numberMap[key[0]] + key.substring(1);
-	// }
 	return key;
 }
 
 function getInstanceType (instance: string, isGlobal: boolean) {
 	switch (instance) {
+		case '3DCamera': return 'I3DCameraObjectType';
 		case '3DShape': return 'I3DShapeInstance';
 		case 'Array': return 'IArrayInstance';
 		case 'Audio': return 'IAudioObjectType';
@@ -200,31 +215,46 @@ function createDefinitionFile (context: vscode.ExtensionContext) {
 		}
 
 		Object.keys(objectTypes).forEach((key) => {
-			data = data.replace("// objects", `// objects
-		['${formatKey(key)}']: IObjectClass<I${formatKey(key)}>;
+			data = data.replace("// {objects}", `// {objects}
+		['${key}']: IObjectClass<I${formatKey(key)}>;
 			`);
 
 			const instanceVariables = (objectTypes[key].instanceVariables || []).map((a: any) => 
-				`['${a.name}']: ${a.type};`);
+				`/** ${a.desc} **/
+		['${a.name}']: ${a.type};`);
 
 			const behaviours = (objectTypes[key].behaviorTypes || []).map((a: any) => 
 				getBehaviours(a)
 			);
 
-			data = data.replace('// instances', `// instances
-interface I${formatKey(key)} extends ${getInstanceType(objectTypes[key]['plugin-id'], objectTypes[key].isGlobal)} {
-	instVars: {
-		${instanceVariables.join('\r\n		')}
-	},
-	behaviors: {
-		${behaviours.join('\r\n		')}
-	}
+			data = data.replace('// {instances}', `// {instances}
+
+interface I${formatKey(key)}Vars {
+	${instanceVariables.join('\r\n		')}
 }
 
-			`);
+interface I${formatKey(key)}Behaviors {
+	${behaviours.join('\r\n		')}
+}
+
+interface I${formatKey(key)} extends ${getInstanceType(objectTypes[key]['plugin-id'], objectTypes[key].isGlobal)} {
+	instVars: I${formatKey(key)}Vars;
+	behaviors: I${formatKey(key)}Behaviors;
+}
+`);
 		});
 
-		data = data.replace('// generatedDate', '// ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString());
+		Object.values(globalVars).forEach((globalVar) => {
+			data = data.replace('// {globalVars}', `// {globalVars}
+		/** ${globalVar.comment} **/
+		${globalVar.isConstant ? 'readonly ' : ''}["${globalVar.name}"]: ${globalVar.type}
+	`);
+		});
+
+		data = data.replace('// {generatedDate}', '// ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString());
+		data = data.replace('// {instances}', '');
+		data = data.replace('// {globalVars}', '');
+		data = data.replace('// {objects}', '');
 
 		fs.writeFile(path!.fsPath + '/c3.d.ts', data, err => {
 			if (err) {
@@ -233,9 +263,84 @@ interface I${formatKey(key)} extends ${getInstanceType(objectTypes[key]['plugin-
 			}
 			
 			vscode.workspace.openTextDocument(path!.fsPath + '/c3.d.ts');
-
+			generateSchema(context);
+			getAutoComplete();
 		  });
 	  });
+
+}
+
+function getAutoComplete () {
+	const runtime = schemas.classes.find(a => a.name === 'IRuntime');
+	const toProcess: Array<any> = [];
+	let keys: Record<string, any> = {};
+
+	const getProperties = (path: string, pathLength: number, c?: TypescriptClass, t?: string) => {
+		if (!path || !c || pathLength > 10) { return; }
+		c.extends.forEach((extend) => {
+			toProcess.push({ 
+				path, 
+				pathLength, 
+				c: schemas.classes.find(a => a.name === extend.typeName) ?? domSchema.classes.find(a => a.name === extend.typeName)
+			});
+		});
+		c.fields.forEach((field) => {
+			keys[path + field.name] = field;
+			if (field.type.typeName) {
+				toProcess.push({ 
+					words: `${path}${field.name}.`, 
+					pathLength: pathLength + 1, 
+					c: schemas.classes.find(a => a.name === (field.type.typeName)) ?? domSchema.classes.find(a => a.name === (field.type.typeName)), 
+					t: field.type.typeArguments?.length ? field.type.typeArguments[0].typeName : '' });
+			}
+		});
+		c.methods.forEach((method) => {
+			const newPath = `${path}${method.name}(${method.arguments.map(a => a.name).join(',')})`;
+			keys[newPath] = method;
+			if (method.returnType.typeName) {
+				toProcess.push({ 
+					words: `${newPath}.`, 
+					pathLength: pathLength + 1, 
+					c: schemas.classes.find(a => a.name === method.returnType.typeName) || domSchema.classes.find(a => a.name === method.returnType.typeName), 
+					t: method.returnType.typeArguments?.length ? method.returnType.typeArguments[0].typeName : '' 
+				});				
+			} else if (!method.returnType.typeName && method.returnType.options?.length && method.returnType.options[0].typeName === 'T') {
+				toProcess.push({ 
+					words: `${newPath}.`, 
+					pathLength: pathLength + 1,
+					c: schemas.classes.find(a => a.name === t) || domSchema.classes.find(a => a.name === method.returnType.typeName), 
+				 });
+			} 
+		});
+	};
+
+	getProperties('runtime.', 0, runtime);
+	
+	while (toProcess.length) {
+		const row = toProcess.splice(0, 1)[0];
+		getProperties(row.words, row.pathLength, row.c, row.t);
+	}
+
+	schemes = keys;
+
+}
+
+function generateSchema (context: vscode.ExtensionContext) {
+	var filePath = path!.fsPath + '/c3.d.ts';
+	var decls = fs.readFileSync(filePath).toString();
+	schemas = tsFileStruct.parseStruct(decls, {}, filePath) as unknown as TypescriptDefinition;	
+	
+	var filePath2 = context.asAbsolutePath('.') + '/typescript.d.ts';
+	var decls2 = fs.readFileSync(filePath2).toString();
+	domSchema = tsFileStruct.parseStruct(decls2, {}, filePath2) as unknown as TypescriptDefinition;	
+
+	// const program = TJS.getProgramFromFiles([resolve(path!.fsPath + '/c3.d.ts')], {}, path?.fsPath);
+	  
+	// const generator = TJS.buildGenerator(program, { ignoreErrors: true });
+	// schemas['runtime'] = generator!.getSchemaForSymbol("IRuntime");
+	// Object.keys(objectTypes).forEach((key) => {
+	// 	schemas[key] = generator!.getSchemaForSymbol("I" + formatKey(key));
+	// });
 }
 
 // this method is called when your extension is deactivated

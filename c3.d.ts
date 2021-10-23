@@ -1,12 +1,9 @@
-// generatedDate
+// {generatedDate}
 
 declare function runOnStartup(cb: (runtime: IRuntime) => void): void;
 
-interface IRuntime {
-    objects: {
-        [key:string]: IObjectClass;
-        // objects
-    }
+declare interface IRuntime {
+    objects: IRuntimeObjects;
     addEventListener(eventName: 'tick' | 'beforeprojectstart' | 'afterprojectstart' | 'keydown' | 'keyup'
         | 'mousedown' | 'mousemove' | 'mouseup' | 'dblclick' | 'wheel' | 'pointerdown' | 'pointermove'
         | 'pointercancel' | 'deviceorientation' | 'devicemotion' | 'save' | 'load' | 'instancecreate'
@@ -18,7 +15,7 @@ interface IRuntime {
     dt: number;
     gameTime: number;
     getInstanceByUid(uid: any): IInstance | undefined
-    globalVars: Record<string, unknown>;
+    globalVars: IGlobalVars;
     mouse?: IMouseObjectType;
     keyboard?: IKeyboardObjectType;
     touch?: ITouchObjectType;
@@ -34,13 +31,21 @@ interface IRuntime {
     projectionVersion: string;
     random(): number;
     wallTime: number;
-    sortZOrder<T>(iterable: Iterable<T>, callback: (a: T, b: T) => boolean): void;
+    sortZOrder<T>(iterable: Array<T>, callback: (a: T, b: T) => boolean): void;
     invokeDownload(url: string, filename: string): void;
     isInWorker: boolean;
     alert(message: string): Promise<void>;
 }
 declare var IRuntime:  { new(): IRuntime };
 
+
+interface IRuntimeObjects {
+    // {objects}
+}
+
+interface IGlobalVars {
+    // {globalVars}
+}
 interface Blob {
     readonly size: number;
     readonly type: string;
@@ -153,15 +158,15 @@ interface IObjectClass<T = IInstance> {
     setInstanceClass(classType: { new(): unknown }): void;
     getAllInstances(): Array<T>
     getFirstInstance(): T | undefined
-    intances(): Iterable<T>;
+    intances(): Iterator<T>;
     getPickedInstances(): Array<T>
     getFirstPickedInstance(): T | undefined
-    pickedInstances(): Iterable<T>;
+    pickedInstances(): Iterator<T>;
     createInstance(layerNameOrIndex: string | number, x: number, y: number, createHierachy: boolean): T
 }
 declare var IObjectClass: { new(): IObjectClass };
 
-// instances
+// {instances}
 
 interface IInstance {
     addEventListener(eventName: 'destroy', callback: (...params: unknown[]) => void): void;
@@ -239,7 +244,7 @@ interface IButtonInstance extends IDOMInstance {
 declare var IButtonInstance: undefined | { new(): IButtonInstance };
 
 interface IDictionaryInstance extends IInstance {
-    getDataMap(): Map<string, string | number>;
+    getDataMap(): Record<string, string | number>;
 }
 declare var IDictionaryInstance: undefined | { new(): IDictionaryInstance };
 
@@ -405,11 +410,11 @@ interface IWorldInstance extends IInstance  {
     getMeshSize(): [number, number];
     getParent(): IWorldInstance | null;
     getTopParent(): IWorldInstance | null;
-    parents(): Generator<IWorldInstance>;
+    parents(): Iterator<IWorldInstance>;
     getChildCount(): number;
     getChildAt(index: number): IWorldInstance | null;
-    children(): Generator<IWorldInstance>;
-    allChildren(): Generator<IWorldInstance>;
+    children(): Iterator<IWorldInstance>;
+    allChildren(): Iterator<IWorldInstance>;
     addChild(worldInstance: IWorldInstance, options?: { transformX?: boolean, transformY?: boolean,transformWidth?: boolean,transformHeight?: boolean, transformAngle?: boolean,transformZElevation?: boolean,destroyWithParent?: boolean }): void;
     removeChild(worldInstance: IWorldInstance): void;
     removeFromParent(worldInstance: IWorldInstance): void;
