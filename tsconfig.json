@@ -16,6 +16,10 @@
 	},
 	"exclude": [
 		"node_modules",
+		"templates/lib.dom.d.ts",
+		"templates/c3.d.ts",
+		"out/templates/lib.dom.d.ts",
+		"out/templates/c3.d.ts",
 		".vscode-test"
 	]
 }

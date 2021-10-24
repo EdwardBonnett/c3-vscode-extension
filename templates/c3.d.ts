@@ -1,3 +1,4 @@
+// NOTE: This definition file is auto generated - any changes you make will not be saved
 // {generatedDate}
 
 declare function runOnStartup(cb: (runtime: IRuntime) => void): void;
@@ -39,13 +40,12 @@ declare interface IRuntime {
 declare var IRuntime:  { new(): IRuntime };
 
 
-interface IRuntimeObjects {
-    // {objects}
+interface IRuntimeObjects {// {objects}
 }
 
-interface IGlobalVars {
-    // {globalVars}
+interface IGlobalVars {// {globalVars}
 }
+
 interface Blob {
     readonly size: number;
     readonly type: string;
@@ -165,7 +165,6 @@ interface IObjectClass<T = IInstance> {
     createInstance(layerNameOrIndex: string | number, x: number, y: number, createHierachy: boolean): T
 }
 declare var IObjectClass: { new(): IObjectClass };
-
 // {instances}
 
 interface IInstance {

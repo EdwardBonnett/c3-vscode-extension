@@ -1,25 +1,30 @@
 {
 	"name": "c3-vscode-extension",
-	"displayName": "Construct3",
-	"description": "",
-	"version": "0.0.1",
+	"displayName": "Construct 3 Tools",
+	"description": "Autocomplete, generated typescript definitions and debugger support for Construct 3",
+	"version": "1.0.0",
+	"publisher": "EdwardBonnett",
 	"engines": {
 		"vscode": "^1.60.0"
 	},
 	"categories": [
-		"Other"
+		"Extension Packs"
 	],
 	"activationEvents": [
 		"workspaceContains:**/project.c3proj",
-		"onCommand:construct3.helloWorld",
+		"onCommand:construct3.regenerateDefinitions",
 		"onDebug"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "construct3.helloWorld",
-				"title": "Hello World"
+				"command": "construct3.regenerateDefinitions",
+				"title": "Construct 3 - Regenerate definitions"
+			},
+			{
+				"command": "construct3.createDebug",
+				"title": "Construct 3 - Generate debug profile"
 			}
 		]
 	},
@@ -36,7 +41,7 @@
 		"@types/glob": "^7.1.4",
 		"@types/mocha": "^9.0.0",
 		"@types/node": "14.x",
-		"@types/vscode": "^1.61.0",
+		"@types/vscode": "^1.60.0",
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
 		"@typescript-eslint/parser": "^4.31.1",
 		"@vscode/test-electron": "^1.6.2",
@@ -47,10 +52,6 @@
 	},
 	"dependencies": {
 		"express": "^4.17.1",
-		"socket.io": "^4.3.1",
-		"ts-file-parser": "0.0.21",
-		"ts-json-schema-generator": "^0.96.0",
-		"ts-types-parser": "1.0.3",
-		"typescript-json-schema": "^0.51.0"
+		"socket.io": "^4.3.1"
 	}
 }

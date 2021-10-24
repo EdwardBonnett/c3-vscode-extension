@@ -33,8 +33,6 @@ export default class SocketServer {
             });
         
           });
-
-     
         
           this.io.on('connect', (socket) => {
               if (socket.handshake.query.environment === 'editor') {
@@ -46,14 +44,18 @@ export default class SocketServer {
 
         });
 
-          this.server.listen(3000, () => {
-            console.log('listening on *:3000');
+          this.server.listen(3003, () => {
+            console.log('listening on *:3003');
           });
         
     }
 
     debug () {
         this.io.emit('run-debug');
+    }
+
+    fileSaved () {
+        this.io.emit('file-saved');
     }
 
     stopDebug () {
