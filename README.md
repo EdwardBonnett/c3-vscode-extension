@@ -48,6 +48,11 @@ None yet, let me know!
 
 ## Release Notes
 
+### 1.0.1
+
+- Fixing generation issue
+- Added logo
+
 ### 1.0.0
 
-Initial release
+- Initial release
