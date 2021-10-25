@@ -4,6 +4,9 @@
 	"description": "Autocomplete, generated typescript definitions and debugger support for Construct 3",
 	"version": "1.0.0",
 	"publisher": "EdwardBonnett",
+    "repository": {
+        "url": "https://github.com/EdwardBonnett/c3-vscode-extension"
+    },
 	"engines": {
 		"vscode": "^1.60.0"
 	},
