@@ -35,24 +35,23 @@ This extension will automatically attempt to create a debug profile for you. Onc
  when you press F5 it will attach to your running Construct 3 game and allow remote debugging.
 
 
-If you have the Construct 3 VS Code plugin then running / stopping the debug instance from within VS Code will automatically start / stop your game for you - so you don't need to enter the Construct 3 IDE at all!
+If you have the Construct 3 VS Code plugin then running / stopping the debug instance from within VS Code will automatically start / stop your game for you. Note: The construct 3 window requires to be focused / visible periodically, otherwise the game window may not play automatically.
 
 ### Auto script reloading
 If you have the Construct 3 VS Code plugin then any time you save a file from within VS Code it will reload the script folder inside Construct 3.
 
-
+## Construct 3 Plugin
+For some of these features you will need to install the "VS Code Plugin" addon from the construct website https://www.construct.net/en/make-games/addons
 
 ## Known Issues
 
 None yet, let me know!
 
 ## Release Notes
-
+### 1.0.2
+- Added extra file required for debugging
 ### 1.0.1
-
 - Fixing generation issue
 - Added logo
-
 ### 1.0.0
-
 - Initial release

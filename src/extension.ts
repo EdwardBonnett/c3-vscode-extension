@@ -67,7 +67,10 @@ function setupDebug (context: vscode.ExtensionContext, warnExists = false) {
         fs.mkdirSync(path?.fsPath + '/.vscode');
     }
 	const src = context.asAbsolutePath('.') + '/templates/launch.json';
-	fs.promises.copyFile(src, path?.fsPath + '/.vscode/launch.json').then(() => {
+	fs.promises.copyFile(src, path?.fsPath + '/.vscode/launch.json');
+
+	const tasksSrc = context.asAbsolutePath('.') + '/templates/tasks.json';
+	fs.promises.copyFile(tasksSrc, path?.fsPath + '/.vscode/tasks.json').then(() => {
 		vscode.window.showInformationMessage('Debug config created');
 	});
 
