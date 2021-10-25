@@ -41,7 +41,7 @@ If you have the Construct 3 VS Code plugin then running / stopping the debug ins
 If you have the Construct 3 VS Code plugin then any time you save a file from within VS Code it will reload the script folder inside Construct 3.
 
 ## Construct 3 Plugin
-For some of these features you will need to install the "VS Code Plugin" addon from the construct website https://www.construct.net/en/make-games/addons
+For some of these features you will need to install the "VS Code Plugin" addon from the construct website https://www.construct.net/en/make-games/addons/603/vs-code-plugin
 
 ## Known Issues
 
