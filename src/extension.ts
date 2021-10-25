@@ -45,7 +45,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	statusBar.show();
 	statusBar.text = 'C3 - Connecting...';
 	context.subscriptions.push(statusBar);
-	
+
 	let regenerateDefinitions = vscode.commands.registerCommand('construct3.regenerateDefinitions', () => {
 		getDefinitions(context);
 	});
@@ -63,6 +63,9 @@ function setupDebug (context: vscode.ExtensionContext, warnExists = false) {
 		if (warnExists) {vscode.window.showInformationMessage('.vscode/launch.json already exists');}
 		return;
 	}
+    if (!fs.existsSync(path?.fsPath + '/.vscode')) {
+        fs.mkdirSync(path?.fsPath + '/.vscode');
+    }
 	const src = context.asAbsolutePath('.') + '/templates/launch.json';
 	fs.promises.copyFile(src, path?.fsPath + '/.vscode/launch.json').then(() => {
 		vscode.window.showInformationMessage('Debug config created');
@@ -95,11 +98,11 @@ async function getDefinitions (context: vscode.ExtensionContext) {
 	const definitions = new ProjectDefinitions(path);
 	autoCompleteKeys = await definitions.generateDefinition(context);
 	vscode.window.showInformationMessage('Definition generated');
-	
+
 	if (languageProvider) {languageProvider.dispose();}
 	languageProvider = vscode.languages.registerCompletionItemProvider(
 		"javascript", new CompletionItemProvider(autoCompleteKeys), '.', '\"');
-	
+
 	context.subscriptions.push(languageProvider);
 }
 

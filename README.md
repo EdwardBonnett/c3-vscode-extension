@@ -1,70 +1,53 @@
-# construct3 README
+# Construct 3 Tools
 
-This is the README for your extension "construct3". After writing up a brief description, we recommend including the following sections.
+This vscode extension is for working on Construct 3 projects locally in 'local folder' mode.
+
+It features:
+- Specific typescript definition generation for your project
+- Basic code completion for non-typescript projects
+- Setup for easy remote debugging (even easier with VS Code Contruct 3 plugin)
+- Auto script reloading (with VS Code Construct 3 plugin)
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### Typescript definition generation
+Automatically creates a typescript definition file called c3.d.ts in the root of your project with a complete set of unique interfaces for your instances, instance variables, behaviors and global variables. This file also contains complete definitions for all available scipting features in Construct 3.
 
-For example if there is an image subfolder under your extension project workspace:
+Generation will happen when you open the project, as well as when you select the Contruct 3 - Regenerate definitions from the command menu.
 
-\!\[feature X\]\(images/feature-x.png\)
+![feature X](images/ts-definition.png)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+### Javascript autocomplete
+If you are not using Typescript you can still benefit from the definition file autocompletion where appropriate. VS Code will automatically pick up definitions for the runOnStartup method, as well as anything within globalThis.
 
-## Requirements
+Where this is not available, autocomplete will try it's best to work out what you're trying to do and provide helpful text suggestions:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+![feature X](images/autocomplete.gif)
 
-## Extension Settings
+For more advanced autocomplete you can also provide hints to vscode about which type a variable is using the jsdoc features by adding a comment above in the format: /** {TYPE} /*
+![feature X](images/js-definition.png)
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### Remote debugging
+This extension will automatically attempt to create a debug profile for you. Once you've set up remote debugging in Chrome  on port 9222.
 
-For example:
+<i>Add --remote-debugging-port=9222 to the shortcut of your chrome.exe, more info [here](https://developer.mozilla.org/en-US/docs/Tools/Remote_Debugging/Chrome_Desktop).</i>
 
-This extension contributes the following settings:
+ when you press F5 it will attach to your running Construct 3 game and allow remote debugging.
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+
+If you have the Construct 3 VS Code plugin then running / stopping the debug instance from within VS Code will automatically start / stop your game for you - so you don't need to enter the Construct 3 IDE at all!
+
+### Auto script reloading
+If you have the Construct 3 VS Code plugin then any time you save a file from within VS Code it will reload the script folder inside Construct 3.
+
+
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+None yet, let me know!
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial release

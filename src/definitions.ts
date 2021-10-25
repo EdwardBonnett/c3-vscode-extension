@@ -9,11 +9,11 @@ export default class ProjectDefinitions {
     path:  vscode.Uri;
 
     objectTypes: Record<string, any> = {};
-    
+
     globalVars: Record<string, any> = {};
 
     schemas!: TypescriptDefinition;
-    
+
     domSchema!: TypescriptDefinition;
 
     constructor (path: vscode.Uri) {
@@ -41,13 +41,13 @@ export default class ProjectDefinitions {
                             type.instanceVariables = [...(this.objectTypes[type.name].instanceVariables || []), ...(type.instanceVariables || [])];
                         }
                         this.objectTypes[type.name] = type;
-                        
+
                     });
                 }
             });
         }
     }
-    
+
     async getFamilies (context: vscode.ExtensionContext) {
         if (this.path) {
             await fs.promises.readdir(this.path.fsPath + '/families').then(async (files) => {
@@ -67,7 +67,7 @@ export default class ProjectDefinitions {
             });
         }
     }
-    
+
     async getGlobalVars (context: vscode.ExtensionContext) {
         if (!this.path) {return;}
         await fs.promises.readdir(this.path.fsPath + '/eventSheets').then(async (files) => {
@@ -83,22 +83,22 @@ export default class ProjectDefinitions {
                 });
             }
         });
-        
+
     }
-    
+
     formatProperty (key: string) {
         if (key.match(/^\d/) || key.indexOf(' ') > -1) {
             return `['${key}']`;
         }
         return key;
     }
-    
-    
+
+
     formatKey(key: string) {
         key = key.replace(/ /g, '');
         return key;
     }
-    
+
     getInstanceType (instance: string, isGlobal: boolean) {
         switch (instance) {
             case '3DCamera': return 'I3DCameraObjectType';
@@ -123,7 +123,7 @@ export default class ProjectDefinitions {
             default: return isGlobal ? 'IInstance' : 'IWorldInstance';
         }
     }
-    
+
     getBehaviours ({ behaviorId, name }: { behaviorId: string; name: string }) {
         switch (behaviorId) {
             case 'EightDir':  return `['${name}']: I8DirectionBehaviorInstance`;
@@ -139,65 +139,65 @@ export default class ProjectDefinitions {
             default: return `['${name}']: IBehaviorInstance`;
         }
     }
-    
+
     async createDefinitionFile (context: vscode.ExtensionContext) {
         await fs.promises.readFile(context.asAbsolutePath('.') + '/templates/c3.d.ts', 'utf8').then(async (data) => {
             Object.keys(this.objectTypes).forEach((key) => {
                 data = data.replace("// {objects}", `// {objects}\r\n\t['${key}']: IObjectClass<I${this.formatKey(key)}>;`);
-    
-                const instanceVariables = (this.objectTypes[key].instanceVariables || []).map((a: any) => 
+
+                const instanceVariables = (this.objectTypes[key].instanceVariables || []).map((a: any) =>
                     `/** ${a.desc} **/\r\n\t['${a.name}']: ${a.type};`);
-    
-                const behaviours = (this.objectTypes[key].behaviorTypes || []).map((a: any) => 
+
+                const behaviours = (this.objectTypes[key].behaviorTypes || []).map((a: any) =>
                     this.getBehaviours(a)
                 );
-    
+
                 data = data.replace('// {instances}', '// {instances}\r\n'
                     + `interface I${this.formatKey(key)}Vars {\r\n\t${instanceVariables.join('\r\n\t')}\r\n}\r\n`
                     + `interface I${this.formatKey(key)}Behaviors {\r\n\t${behaviours.join('\r\n\t')}\r\n}\r\n`
                     + `interface I${this.formatKey(key)} extends ${this.getInstanceType(this.objectTypes[key]['plugin-id'], this.objectTypes[key].isGlobal)} {`
                     + `\r\n\tinstVars: I${this.formatKey(key)}Vars;\r\n\tbehaviors: I${this.formatKey(key)}Behaviors;\r\n}\r\n`);
             });
-    
+
             Object.values(this.globalVars).forEach((globalVar) => {
                 data = data.replace('// {globalVars}', `// {globalVars}`
                 +`\r\n\t/** ${globalVar.comment} **/`
                 +`\r\n\t${globalVar.isConstant ? 'readonly ' : ''}["${globalVar.name}"]: ${globalVar.type}`);
             });
-    
+
             data = data.replace('// {generatedDate}', '// ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString());
             data = data.replace('// {instances}', '');
             data = data.replace('// {globalVars}', '');
             data = data.replace('// {objects}', '');
-    
-            await fs.promises.writeFile(this.path!.fsPath + '/c3.d.ts', data).then(() => {                
+
+            await fs.promises.writeFile(this.path!.fsPath + '/c3.d.ts', data).then(() => {
                 vscode.workspace.openTextDocument(this.path!.fsPath + '/c3.d.ts');
               });
           });
-    
+
     }
-    
+
     getAutoComplete () {
         const runtime = this.schemas.classes.find(a => a.name === 'IRuntime');
         const toProcess: Array<any> = [];
         let keys: Record<string, any> = {};
-    
+
         const getProperties = (path: string, pathLength: number, c?: TypescriptClass, t?: string) => {
             if (!path || !c || pathLength > 10 || path.indexOf('.runtime') > -1) { return; }
             c.extends.forEach((extend) => {
-                toProcess.push({ 
-                    words: path, 
-                    pathLength, 
+                toProcess.push({
+                    words: path,
+                    pathLength,
                     c: this.schemas.classes.find(a => a.name === extend.typeName)
                 });
             });
             c.fields.forEach((field) => {
                 keys[path + field.name] = field;
                 if (field.type.typeName) {
-                    toProcess.push({ 
-                        words: `${path}${field.name}.`, 
-                        pathLength: pathLength + 1, 
-                        c: this.schemas.classes.find(a => a.name === (field.type.typeName)) ?? this.domSchema.classes.find(a => a.name === (field.type.typeName)), 
+                    toProcess.push({
+                        words: `${path}${field.name}.`,
+                        pathLength: pathLength + 1,
+                        c: this.schemas.classes.find(a => a.name === (field.type.typeName)) ?? this.domSchema.classes.find(a => a.name === (field.type.typeName)),
                         t: field.type.typeArguments?.length ? field.type.typeArguments[0].typeName : '' });
                 }
             });
@@ -205,41 +205,54 @@ export default class ProjectDefinitions {
                 const newPath = `${path}${method.name}(${method.arguments.map(a => a.name).join(',')})`;
                 keys[newPath] = method;
                 if (method.returnType.typeName) {
-                    toProcess.push({ 
-                        words: `${newPath}.`, 
-                        pathLength: pathLength + 1, 
-                        c: this.schemas.classes.find(a => a.name === method.returnType.typeName) || this.domSchema.classes.find(a => a.name === method.returnType.typeName), 
-                        t: method.returnType.typeArguments?.length ? method.returnType.typeArguments[0].typeName : '' 
-                    });				
-                } else if (!method.returnType.typeName && method.returnType.options?.length && method.returnType.options[0].typeName === 'T') {
-                    toProcess.push({ 
-                        words: `${newPath}.`, 
+                    toProcess.push({
+                        words: `${newPath}.`,
                         pathLength: pathLength + 1,
-                        c: this.schemas.classes.find(a => a.name === t) || this.domSchema.classes.find(a => a.name === method.returnType.typeName), 
+                        c: this.schemas.classes.find(a => a.name === method.returnType.typeName) || this.domSchema.classes.find(a => a.name === method.returnType.typeName),
+                        t: method.returnType.typeArguments?.length ? method.returnType.typeArguments[0].typeName : ''
+                    });
+                } else if (!method.returnType.typeName && method.returnType.options?.length && method.returnType.options[0].typeName === 'T') {
+                    toProcess.push({
+                        words: `${newPath}.`,
+                        pathLength: pathLength + 1,
+                        c: this.schemas.classes.find(a => a.name === t) || this.domSchema.classes.find(a => a.name === method.returnType.typeName),
                      });
-                } 
+                }
             });
         };
-    
+
         getProperties('runtime.', 0, runtime);
-        
+
         while (toProcess.length) {
             const row = toProcess.splice(0, 1)[0];
             getProperties(row.words, row.pathLength, row.c, row.t);
         }
-    
+
+        const extrasKeys: Record<string, unknown> = {};
+        Object.keys(keys).forEach((key) => {
+            const behaviorIndex = key.indexOf('.behaviors.');
+            if (behaviorIndex > -1) {
+                const behaviorKey = key.substring(behaviorIndex + 1);
+                extrasKeys[behaviorKey] = keys[key];
+            }
+            const instVarsIndex = key.indexOf('.instVars.');
+            if (instVarsIndex > -1) {
+                const varKey = key.substring(instVarsIndex + 1);
+                extrasKeys[varKey] = keys[key];
+            }
+        });
         return keys;
-    
+
     }
-    
+
     generateSchema (context: vscode.ExtensionContext) {
         var filePath = this.path!.fsPath + '/c3.d.ts';
         var decls = fs.readFileSync(filePath).toString();
-        this.schemas = tsFileStruct.parseStruct(decls, {}, filePath) as unknown as TypescriptDefinition;	
-        
+        this.schemas = tsFileStruct.parseStruct(decls, {}, filePath) as unknown as TypescriptDefinition;
+
         var filePath2 = context.asAbsolutePath('.') + '/templates/typescript.d.ts';
         var decls2 = fs.readFileSync(filePath2).toString();
-        this.domSchema = tsFileStruct.parseStruct(decls2, {}, filePath2) as unknown as TypescriptDefinition;	
+        this.domSchema = tsFileStruct.parseStruct(decls2, {}, filePath2) as unknown as TypescriptDefinition;
     }
-    
+
 }

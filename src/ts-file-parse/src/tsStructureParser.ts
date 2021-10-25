@@ -449,7 +449,7 @@ export function parseArg(n: ts.Expression): any {
     }
     if (n.kind === ts.SyntaxKind.BinaryExpression) {
         var bin: ts.BinaryExpression = <ts.BinaryExpression>n;
-        if (bin.operatorToken.kind = ts.SyntaxKind.PlusToken) {
+        if (bin.operatorToken.kind === ts.SyntaxKind.PlusToken) {
             return parseArg(bin.left) + parseArg(bin.right);
         }
     }
@@ -551,7 +551,7 @@ export function buildType(t: ts.TypeNode, path: string): TypeModel | null {
             });
         }
         return res;
-    } 
+    }
     if (t.kind === ts.SyntaxKind.StringLiteral || t.kind === ts.SyntaxKind.LiteralType) {
         switch ((t as any).literal.kind) {
             case ts.SyntaxKind.FalseKeyword:

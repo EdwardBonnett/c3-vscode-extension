@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 export default class CompletionItemProvider implements vscode.CompletionItemProvider {
-    
+
     keyList!: Record<string, any>;
 
     constructor (keyList: Record<string, any>) {
@@ -15,9 +15,30 @@ export default class CompletionItemProvider implements vscode.CompletionItemProv
         let words: Array<string> = word.split('.');
         var range2 = new vscode.Range(position, new vscode.Position(position.line, position.character - words[words.length - 1].length - 1));
         words = words.filter((a, i, l) => i !== l.length - 1);
-        
-        const keys = Object.keys(this.keyList)
+
+        let keys = Object.keys(this.keyList)
             .filter(a => a.startsWith(word) && a.split('.').length === words.length + 1);
+
+        const otherKeys = ['.instVars', '.behaviors', 'runtime'];
+        otherKeys.forEach((key) => {
+            if (!keys.length && word.indexOf(key + '.') > -1) {
+                const sub = word.substring(word.indexOf(key) + key.length);
+                keys = [...new Set(Object.keys(this.keyList)
+                    .filter((a) => {
+                        const indexOf = a.indexOf(key);
+                        if (indexOf === -1) { return false; }
+                        const newWord = a.substring(indexOf + key.length);
+                        return newWord.startsWith(sub) && newWord.split('.').length === sub.split('.').length;
+                    }).filter((a, i, l) => {
+                        const arr = a.split('.');
+                        return i === l.findIndex((b: string) => {
+                            const barr = b.split('.');
+                            return arr[arr.length - 1] === barr[barr.length - 1];
+
+                        });
+                    }))];
+            }
+        });
 
         return keys
             .map((key, i) => {
@@ -51,8 +72,10 @@ export default class CompletionItemProvider implements vscode.CompletionItemProv
         return word.replace(/\[/g, '')
             .replace(/\]/g, '')
             .replace(/\'/g, '')
-            .replace(/\"/g, '');
+            .replace(/\"/g, '')
+            .replace(/^\(+|\)+$/g, '')
+            .replace(/^\{+|\}+$/g, '');
     }
-        
+
 }
 
