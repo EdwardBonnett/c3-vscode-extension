@@ -2,9 +2,9 @@
 	"name": "c3-vscode-extension",
 	"displayName": "Construct 3 Tools",
 	"description": "Autocomplete, generated typescript definitions and debugger support for Construct 3",
-	"version": "1.0.2",
+	"version": "1.0.4",
 	"publisher": "EdwardBonnett",
-    "icon": "images/logo.png",
+    "icon": "images/icon.png",
 	"repository": {
 		"url": "https://github.com/EdwardBonnett/c3-vscode-extension"
 	},

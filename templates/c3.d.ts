@@ -39,11 +39,12 @@ declare interface IRuntime {
 }
 declare var IRuntime:  { new(): IRuntime };
 
+type VariableType = Record<string, string | boolean | number | null | undefined>;
 
 interface IRuntimeObjects {// {objects}
 }
 
-interface IGlobalVars {// {globalVars}
+interface IGlobalVars extends VariableType {// {globalVars}
 }
 
 interface Blob {
@@ -173,7 +174,7 @@ interface IInstance {
     dispatchEvent(e: Event): void;
     runtime: IRuntime;
     objectType: IObjectClass;
-    instVars: Record<string, number | string | boolean | undefined | null>
+    instVars: VariableType;
     behaviors: Record<string, IBehaviorInstance>;
     readonly uid: number;
     destroy(): void;

@@ -153,8 +153,8 @@ export default class ProjectDefinitions {
                 );
 
                 data = data.replace('// {instances}', '// {instances}\r\n'
-                    + `interface I${this.formatKey(key)}Vars {\r\n\t${instanceVariables.join('\r\n\t')}\r\n}\r\n`
-                    + `interface I${this.formatKey(key)}Behaviors {\r\n\t${behaviours.join('\r\n\t')}\r\n}\r\n`
+                    + `interface I${this.formatKey(key)}Vars extends extends VariableType {\r\n\t${instanceVariables.join('\r\n\t')}\r\n}\r\n`
+                    + `interface I${this.formatKey(key)}Behaviors extends extends Record<string, IBehaviorInstance> {\r\n\t${behaviours.join('\r\n\t')}\r\n}\r\n`
                     + `interface I${this.formatKey(key)} extends ${this.getInstanceType(this.objectTypes[key]['plugin-id'], this.objectTypes[key].isGlobal)} {`
                     + `\r\n\tinstVars: I${this.formatKey(key)}Vars;\r\n\tbehaviors: I${this.formatKey(key)}Behaviors;\r\n}\r\n`);
             });

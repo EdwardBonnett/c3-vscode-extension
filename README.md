@@ -48,6 +48,8 @@ For some of these features you will need to install the "VS Code Plugin" addon f
 None yet, let me know!
 
 ## Release Notes
+### 1.0.4
+- Updated definitions
 ### 1.0.2
 - Added extra file required for debugging
 ### 1.0.1
