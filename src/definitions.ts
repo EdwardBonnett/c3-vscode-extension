@@ -31,7 +31,7 @@ export default class ProjectDefinitions {
     }
 
     async getObjectTypes (context: vscode.ExtensionContext) {
-        if (this.path) {
+        if (this.path && fs.existsSync(this.path.fsPath + '/objectTypes')) {
             await fs.promises.readdir(this.path.fsPath + '/objectTypes').then(async (files) => {
                 for (const file of files) {
                     await vscode.workspace.openTextDocument(this.path!.fsPath + '/objectTypes/' + file).then((document) => {
@@ -49,7 +49,7 @@ export default class ProjectDefinitions {
     }
 
     async getFamilies (context: vscode.ExtensionContext) {
-        if (this.path) {
+        if (this.path && fs.existsSync(this.path.fsPath + '/families')) {
             await fs.promises.readdir(this.path.fsPath + '/families').then(async (files) => {
                 for (const file of files) {
                     await vscode.workspace.openTextDocument(this.path!.fsPath + '/families/' + file).then((document) => {
@@ -69,7 +69,7 @@ export default class ProjectDefinitions {
     }
 
     async getGlobalVars (context: vscode.ExtensionContext) {
-        if (!this.path) {return;}
+        if (!this.path || !fs.existsSync(this.path.fsPath + '/eventSheets')) {return;}
         await fs.promises.readdir(this.path.fsPath + '/eventSheets').then(async (files) => {
             for (const file of files) {
                 await vscode.workspace.openTextDocument(this.path!.fsPath + '/eventSheets/' + file).then((document) => {
@@ -184,6 +184,8 @@ export default class ProjectDefinitions {
 
         const getProperties = (path: string, pathLength: number, c?: TypescriptClass, t?: string) => {
             if (!path || !c || pathLength > 10 || path.indexOf('.runtime') > -1) { return; }
+            if (path.split('.').filter(a => a === '.layout.').length > 1
+                && path.split('.').filter(a => a === '.layout.').length > 1) {return;}
             c.extends.forEach((extend) => {
                 toProcess.push({
                     words: path,
@@ -238,6 +240,18 @@ export default class ProjectDefinitions {
             const instVarsIndex = key.indexOf('.instVars.');
             if (instVarsIndex > -1) {
                 const varKey = key.substring(instVarsIndex + 1);
+                extrasKeys[varKey] = keys[key];
+            }
+
+            const layoutIndex = key.indexOf('.layout.');
+            if (layoutIndex > -1) {
+                const varKey = key.substring(layoutIndex + 1);
+                extrasKeys[varKey] = keys[key];
+            }
+
+            const layerIndex = key.indexOf('.layer.');
+            if (layerIndex > -1) {
+                const varKey = key.substring(layerIndex + 1);
                 extrasKeys[varKey] = keys[key];
             }
         });
