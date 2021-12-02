@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as tsFileStruct from './ts-file-parse';
 import TypescriptDefinition, { TypescriptClass } from './models/typescriptDefinition';
+import NestedKeyPair from './models/nestedKeyPair';
 
 
 export default class ProjectDefinitions {
@@ -181,81 +182,106 @@ export default class ProjectDefinitions {
         const runtime = this.schemas.classes.find(a => a.name === 'IRuntime');
         const toProcess: Array<any> = [];
         let keys: Record<string, any> = {};
+        const keyObj: NestedKeyPair = {};
 
-        const getProperties = (path: string, pathLength: number, c?: TypescriptClass, t?: string) => {
-            if (!path || !c || pathLength > 10 || path.indexOf('.runtime') > -1) { return; }
-            if (path.split('.').filter(a => a === '.layout.').length > 1
-                && path.split('.').filter(a => a === '.layout.').length > 1) {return;}
-            c.extends.forEach((extend) => {
+        // get all fields and methods for typescript class
+        const getProperties = (path: string, pathLength: number, typescriptClass?: TypescriptClass, t?: string) => {
+            if (!path || !typescriptClass || pathLength > 10 || path.indexOf('.runtime') > -1) { return; }
+            const splitPath = path.split('.');
+            const finalProperty = splitPath[splitPath.length - 1];
+            let currentObj = keyObj;
+            splitPath.forEach((key) => {
+                if (key) {
+                    if(!currentObj[key]) {
+                        currentObj[key] = {
+                            '${type}': 'property',
+                            '${detail}': '',
+                        };
+                    }
+                    currentObj = currentObj[key] as NestedKeyPair;
+                }
+            });
+            if (splitPath.filter(a => a === 'layer').length > 1 || splitPath.filter(a => a === 'layout').length > 1 || splitPath.indexOf('[object Object]') > -1) {    
+                return;
+            }
+            typescriptClass.extends.forEach((extend) => {
                 toProcess.push({
                     words: path,
                     pathLength,
-                    c: this.schemas.classes.find(a => a.name === extend.typeName)
+                    typescriptClass: this.schemas.classes.find(a => a.name === extend.typeName)
                 });
             });
-            c.fields.forEach((field) => {
-                keys[path + field.name] = field;
+            typescriptClass.fields.forEach((field) => {
+                currentObj[field.name] = {
+                    '${type}': field.type.modulePath ? 'field' : 'property',
+                    '${detail}': field.name,
+                };
                 if (field.type.typeName) {
                     toProcess.push({
                         words: `${path}${field.name}.`,
                         pathLength: pathLength + 1,
-                        c: this.schemas.classes.find(a => a.name === (field.type.typeName)) ?? this.domSchema.classes.find(a => a.name === (field.type.typeName)),
+                        typescriptClass: this.schemas.classes.find(a => a.name === (field.type.typeName)) ?? this.domSchema.classes.find(a => a.name === (field.type.typeName)),
                         t: field.type.typeArguments?.length ? field.type.typeArguments[0].typeName : '' });
                 }
             });
-            c.methods.forEach((method) => {
+            typescriptClass.methods.forEach((method) => {
                 const newPath = `${path}${method.name}(${method.arguments.map(a => a.name).join(',')})`;
-                keys[newPath] = method;
+                currentObj[`${method.name}(${method.arguments.map(a => a.name).join(',')})`] = {
+                    '${type}': 'method',
+                    '${detail}': method.text,
+                };
+                // keys[newPath] = method;
                 if (method.returnType.typeName) {
                     toProcess.push({
                         words: `${newPath}.`,
                         pathLength: pathLength + 1,
-                        c: this.schemas.classes.find(a => a.name === method.returnType.typeName) || this.domSchema.classes.find(a => a.name === method.returnType.typeName),
+                        typescriptClass: this.schemas.classes.find(a => a.name === method.returnType.typeName) || this.domSchema.classes.find(a => a.name === method.returnType.typeName),
                         t: method.returnType.typeArguments?.length ? method.returnType.typeArguments[0].typeName : ''
                     });
                 } else if (!method.returnType.typeName && method.returnType.options?.length && method.returnType.options[0].typeName === 'T') {
                     toProcess.push({
                         words: `${newPath}.`,
                         pathLength: pathLength + 1,
-                        c: this.schemas.classes.find(a => a.name === t) || this.domSchema.classes.find(a => a.name === method.returnType.typeName),
+                        typescriptClass: this.schemas.classes.find(a => a.name === t) || this.domSchema.classes.find(a => a.name === method.returnType.typeName),
                      });
                 }
             });
         };
 
+        keyObj.runtime = {};
         getProperties('runtime.', 0, runtime);
 
         while (toProcess.length) {
             const row = toProcess.splice(0, 1)[0];
-            getProperties(row.words, row.pathLength, row.c, row.t);
+            getProperties(row.words, row.pathLength, row.typescriptClass, row.t);
         }
 
         const extrasKeys: Record<string, unknown> = {};
-        Object.keys(keys).forEach((key) => {
-            const behaviorIndex = key.indexOf('.behaviors.');
-            if (behaviorIndex > -1) {
-                const behaviorKey = key.substring(behaviorIndex + 1);
-                extrasKeys[behaviorKey] = keys[key];
-            }
-            const instVarsIndex = key.indexOf('.instVars.');
-            if (instVarsIndex > -1) {
-                const varKey = key.substring(instVarsIndex + 1);
-                extrasKeys[varKey] = keys[key];
-            }
+        // Object.keys(keys).forEach((key) => {
+        //     const behaviorIndex = key.indexOf('.behaviors.');
+        //     if (behaviorIndex > -1) {
+        //         const behaviorKey = key.substring(behaviorIndex + 1);
+        //         extrasKeys[behaviorKey] = keys[key];
+        //     }
+        //     const instVarsIndex = key.indexOf('.instVars.');
+        //     if (instVarsIndex > -1) {
+        //         const varKey = key.substring(instVarsIndex + 1);
+        //         extrasKeys[varKey] = keys[key];
+        //     }
 
-            const layoutIndex = key.indexOf('.layout.');
-            if (layoutIndex > -1) {
-                const varKey = key.substring(layoutIndex + 1);
-                extrasKeys[varKey] = keys[key];
-            }
+        //     const layoutIndex = key.indexOf('.layout.');
+        //     if (layoutIndex > -1) {
+        //         const varKey = key.substring(layoutIndex + 1);
+        //         extrasKeys[varKey] = keys[key];
+        //     }
 
-            const layerIndex = key.indexOf('.layer.');
-            if (layerIndex > -1) {
-                const varKey = key.substring(layerIndex + 1);
-                extrasKeys[varKey] = keys[key];
-            }
-        });
-        return keys;
+        //     const layerIndex = key.indexOf('.layer.');
+        //     if (layerIndex > -1) {
+        //         const varKey = key.substring(layerIndex + 1);
+        //         extrasKeys[varKey] = keys[key];
+        //     }
+        // });
+        return keyObj;
 
     }
 
