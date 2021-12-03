@@ -181,7 +181,6 @@ export default class ProjectDefinitions {
     getAutoComplete () {
         const runtime = this.schemas.classes.find(a => a.name === 'IRuntime');
         const toProcess: Array<any> = [];
-        let keys: Record<string, any> = {};
         const keyObj: NestedKeyPair = {};
 
         // get all fields and methods for typescript class
@@ -201,7 +200,8 @@ export default class ProjectDefinitions {
                     currentObj = currentObj[key] as NestedKeyPair;
                 }
             });
-            if (splitPath.filter(a => a === 'layer').length > 1 || splitPath.filter(a => a === 'layout').length > 1 || splitPath.indexOf('[object Object]') > -1) {    
+
+            if (splitPath.filter(a => a === 'layer').length > 1 || splitPath.filter(a => a === 'layout').length > 1 || splitPath.indexOf('[object Object]') > -1) {
                 return;
             }
             typescriptClass.extends.forEach((extend) => {
@@ -212,10 +212,12 @@ export default class ProjectDefinitions {
                 });
             });
             typescriptClass.fields.forEach((field) => {
-                currentObj[field.name] = {
-                    '${type}': field.type.modulePath ? 'field' : 'property',
-                    '${detail}': field.name,
-                };
+                if (!currentObj[field.name]) {
+                    currentObj[field.name] = {
+                        '${type}': field.type.modulePath ? 'field' : 'property',
+                        '${detail}': field.name,
+                    };
+                }
                 if (field.type.typeName) {
                     toProcess.push({
                         words: `${path}${field.name}.`,
@@ -225,12 +227,14 @@ export default class ProjectDefinitions {
                 }
             });
             typescriptClass.methods.forEach((method) => {
-                const newPath = `${path}${method.name}(${method.arguments.map(a => a.name).join(',')})`;
-                currentObj[`${method.name}(${method.arguments.map(a => a.name).join(',')})`] = {
-                    '${type}': 'method',
-                    '${detail}': method.text,
-                };
-                // keys[newPath] = method;
+                const args = method.arguments.map(a => a.name).join(',');
+                const newPath = `${path}${method.name}(${args})`;
+                if (!currentObj[`${method.name}(${args})`]) {
+                    currentObj[`${method.name}(${args})`] = {
+                        '${type}': 'method',
+                        '${detail}': method.text,
+                    };
+                }
                 if (method.returnType.typeName) {
                     toProcess.push({
                         words: `${newPath}.`,
@@ -256,31 +260,19 @@ export default class ProjectDefinitions {
             getProperties(row.words, row.pathLength, row.typescriptClass, row.t);
         }
 
-        const extrasKeys: Record<string, unknown> = {};
-        // Object.keys(keys).forEach((key) => {
-        //     const behaviorIndex = key.indexOf('.behaviors.');
-        //     if (behaviorIndex > -1) {
-        //         const behaviorKey = key.substring(behaviorIndex + 1);
-        //         extrasKeys[behaviorKey] = keys[key];
-        //     }
-        //     const instVarsIndex = key.indexOf('.instVars.');
-        //     if (instVarsIndex > -1) {
-        //         const varKey = key.substring(instVarsIndex + 1);
-        //         extrasKeys[varKey] = keys[key];
-        //     }
+        keyObj.layout = keyObj.runtime.layout;
+        keyObj.behaviors = {};
+        keyObj.instVars = {};
+        keyObj.layer = (keyObj.runtime.layout as NestedKeyPair)['getLayer(layerNameOrIndex)'];
+        (keyObj.layer as NestedKeyPair)['${type}'] = 'field';
+        (keyObj.runtime as NestedKeyPair)['${type}'] = 'field';
+        Object.values(keyObj.runtime.objects).forEach((a) => {
+            if (a['getFirstInstance()']) {
+                keyObj.instVars = {...keyObj.instVars as object, ...(a['getFirstInstance()'].instVars || {})};
+                keyObj.behaviors = {...keyObj.behaviors as object, ...(a['getFirstInstance()'].behaviors || {})};
+            }
+        });
 
-        //     const layoutIndex = key.indexOf('.layout.');
-        //     if (layoutIndex > -1) {
-        //         const varKey = key.substring(layoutIndex + 1);
-        //         extrasKeys[varKey] = keys[key];
-        //     }
-
-        //     const layerIndex = key.indexOf('.layer.');
-        //     if (layerIndex > -1) {
-        //         const varKey = key.substring(layerIndex + 1);
-        //         extrasKeys[varKey] = keys[key];
-        //     }
-        // });
         return keyObj;
 
     }

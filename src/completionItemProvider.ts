@@ -19,33 +19,19 @@ export default class CompletionItemProvider implements vscode.CompletionItemProv
         const allExceptLastWords = words.filter((a, i, l) => i !== l.length - 1);
         const lastWord = words[words.length - 1];
 
+        let nest = 0;
         let obj = this.keyList;
         allExceptLastWords.forEach((key) => {
-            if (obj[key]) {obj = obj[key] as NestedKeyPair;}
+            if (obj[key]) {
+                obj = obj[key] as NestedKeyPair;
+                nest += 1;
+            }
         });
+
+        if (nest < 1) {return [];}
+
         let keys = Object.keys(obj)
-            .filter(a => a.startsWith(lastWord));
-
-        // const otherKeys = ['.instVars', '.behaviors', 'runtime'];
-        // otherKeys.forEach((key) => {
-        //     if (!keys.length && word.indexOf(key + '.') > -1) {
-        //         const sub = word.substring(word.indexOf(key) + key.length);
-        //         keys = [...new Set(Object.keys(this.keyList)
-        //             .filter((a) => {
-        //                 const indexOf = a.indexOf(key);
-        //                 if (indexOf === -1) { return false; }
-        //                 const newWord = a.substring(indexOf + key.length);
-        //                 return newWord.startsWith(sub) && newWord.split('.').length === sub.split('.').length;
-        //             }).filter((a, i, l) => {
-        //                 const arr = a.split('.');
-        //                 return i === l.findIndex((b: string) => {
-        //                     const barr = b.split('.');
-        //                     return arr[arr.length - 1] === barr[barr.length - 1];
-
-        //                 });
-        //             }))];
-        //     }
-        // });
+            .filter(a => a !== '${type}' && a !== '${detail}' && a.startsWith(lastWord));
 
         return keys
             .map((key, i) => {
