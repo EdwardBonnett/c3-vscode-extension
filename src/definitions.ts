@@ -263,7 +263,7 @@ export default class ProjectDefinitions {
         keyObj.layout = keyObj.runtime.layout;
         keyObj.behaviors = {};
         keyObj.instVars = {};
-        keyObj.layer = (keyObj.runtime.layout as NestedKeyPair)['getLayer(layerNameOrIndex)'];
+        keyObj.layer = {...(keyObj.runtime.layout as NestedKeyPair)['getLayer(layerNameOrIndex)'] as object};
         (keyObj.layer as NestedKeyPair)['${type}'] = 'field';
         (keyObj.runtime as NestedKeyPair)['${type}'] = 'field';
         Object.values(keyObj.runtime.objects).forEach((a) => {
