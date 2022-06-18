@@ -423,7 +423,7 @@ declare var IWorldInstance: { new(): IWorldInstance };
 
 
 interface IBehavior {
-    getAllInstances: Array<IInstance>;
+    getAllInstances(): Array<IInstance>;
 }
 declare var IBehavior: { new(): IBehavior };
 

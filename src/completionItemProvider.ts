@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
+import NestedKeyPair from './models/nestedKeyPair';
+import { TypescriptField, TypescriptMethod } from './models/typescriptDefinition';
 
 export default class CompletionItemProvider implements vscode.CompletionItemProvider {
 
-    keyList!: Record<string, any>;
+    keyList!: NestedKeyPair;
 
-    constructor (keyList: Record<string, any>) {
+    constructor (keyList: NestedKeyPair) {
         this.keyList = keyList;
     }
 
@@ -14,43 +16,36 @@ export default class CompletionItemProvider implements vscode.CompletionItemProv
 
         let words: Array<string> = word.split('.');
         var range2 = new vscode.Range(position, new vscode.Position(position.line, position.character - words[words.length - 1].length - 1));
-        words = words.filter((a, i, l) => i !== l.length - 1);
+        const allExceptLastWords = words.filter((a, i, l) => i !== l.length - 1);
+        const lastWord = words[words.length - 1];
 
-        let keys = Object.keys(this.keyList)
-            .filter(a => a.startsWith(word) && a.split('.').length === words.length + 1);
-
-        const otherKeys = ['.instVars', '.behaviors', 'runtime'];
-        otherKeys.forEach((key) => {
-            if (!keys.length && word.indexOf(key + '.') > -1) {
-                const sub = word.substring(word.indexOf(key) + key.length);
-                keys = [...new Set(Object.keys(this.keyList)
-                    .filter((a) => {
-                        const indexOf = a.indexOf(key);
-                        if (indexOf === -1) { return false; }
-                        const newWord = a.substring(indexOf + key.length);
-                        return newWord.startsWith(sub) && newWord.split('.').length === sub.split('.').length;
-                    }).filter((a, i, l) => {
-                        const arr = a.split('.');
-                        return i === l.findIndex((b: string) => {
-                            const barr = b.split('.');
-                            return arr[arr.length - 1] === barr[barr.length - 1];
-
-                        });
-                    }))];
+        let nest = 0;
+        let obj = this.keyList;
+        allExceptLastWords.forEach((key) => {
+            if (obj[key]) {
+                obj = obj[key] as NestedKeyPair;
+                nest += 1;
             }
         });
+
+        if (nest < 1) {return [];}
+
+        let keys = Object.keys(obj)
+            .filter(a => a !== '${type}' && a !== '${detail}' && a.startsWith(lastWord));
 
         return keys
             .map((key, i) => {
                 const arr = key.split('.');
                 const name = arr[arr.length - 1];
-                const type = this.keyList[key];
+                const type = obj[key];
                 let kind = vscode.CompletionItemKind.Property;
-                if (type.type?.modulePath) { kind = vscode.CompletionItemKind.Field; }
-                if (type.arguments !== undefined) { kind = vscode.CompletionItemKind.Method; }
+                switch ((type as NestedKeyPair)['${type}']) {
+                    case 'method': kind = vscode.CompletionItemKind.Method; break;
+                    case 'field': kind = vscode.CompletionItemKind.Field; break;
+                }
                 return {
                     label: name,
-                    detail: type.text,
+                    detail: name,
                     insertText: '.' + this.formatProperty(name),
                     range: range2,
                     sortText: '.' + name,
