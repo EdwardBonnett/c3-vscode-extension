@@ -128,8 +128,8 @@ interface IEffectInstance {
     index: number;
     name: string;
     isActive: boolean;
-    setParamater(index: number, value: number | string | [number, number, number]): void;
-    getParamater(index: number): number | string | [number, number, number];
+    setParameter(index: number, value: number | string | [number, number, number]): void;
+    getParameter(index: number): number | string | [number, number, number];
 }
 declare var IEffectInstance:  { new(): IEffectInstance };
 
