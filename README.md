@@ -11,7 +11,7 @@ It features:
 ## Features
 
 ### Typescript definition generation
-Automatically creates a typescript definition file called c3.d.ts in the root of your project with a complete set of unique interfaces for your instances, instance variables, behaviors and global variables. This file also contains complete definitions for all available scipting features in Construct 3.
+Automatically creates a typescript definition file called c3.d.ts in the root of your project with a complete set of unique interfaces for your instances, instance variables, behaviors and global variavsce packagebles. This file also contains complete definitions for all available scipting features in Construct 3.
 
 Generation will happen when you open the project, as well as when you select the Contruct 3 - Regenerate definitions from the command menu.
 
@@ -48,6 +48,12 @@ For some of these features you will need to install the "VS Code Plugin" addon f
 None yet, let me know!
 
 ## Release Notes
+### 1.0.8
+- Fixed typo in definitions
+### 1.0.7
+- Refactor for signficant speed improvements
+### 1.0.6
+- Updated definitions
 ### 1.0.5
 - Updated definitions
 ### 1.0.4
