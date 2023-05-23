@@ -159,7 +159,7 @@ interface IObjectClass<T = IInstance> {
     setInstanceClass(classType: { new(): unknown }): void;
     getAllInstances(): Array<T>
     getFirstInstance(): T | undefined
-    intances(): Iterator<T>;
+    instances(): Iterator<T>;
     getPickedInstances(): Array<T>
     getFirstPickedInstance(): T | undefined
     pickedInstances(): Iterator<T>;
